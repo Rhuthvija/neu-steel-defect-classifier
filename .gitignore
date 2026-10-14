@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Data: tracked by DVC, not Git
+/data/raw/NEU-DET
+/data/splits
+*.zip
+
+# MLflow: local experiment store (screenshots go in docs/)
+mlflow.db
+mlruns/
+mlartifacts/
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Secrets (none are needed, but never commit them)
+.env
+.streamlit/secrets.toml

@@ -1,0 +1,37 @@
+{
+  "arch": "resnet18",
+  "best_epoch": 2,
+  "epochs_run": 2,
+  "train_time_s": 21.5,
+  "n_params": 11179590,
+  "device": "mps",
+  "seed": 42,
+  "val": {
+    "accuracy": 0.9965277777777778,
+    "precision_macro": 0.9965986394557823,
+    "recall_macro": 0.9965277777777777,
+    "f1_macro": 0.9965274009766686,
+    "ece": 0.01394640447364913,
+    "nll": 0.017650963738560677
+  },
+  "history": [
+    {
+      "epoch": 1,
+      "stage": "frozen",
+      "train_loss": 1.380712964468532,
+      "train_acc": 0.4835069444444444,
+      "val_loss": 0.9274406433105469,
+      "val_acc": 0.7916666666666666,
+      "lr": 0.0
+    },
+    {
+      "epoch": 2,
+      "stage": "finetune",
+      "train_loss": 0.1930271575951742,
+      "train_acc": 0.9513888888888888,
+      "val_loss": 0.017650964681201406,
+      "val_acc": 0.9965277777777778,
+      "lr": 0.0
+    }
+  ]
+}

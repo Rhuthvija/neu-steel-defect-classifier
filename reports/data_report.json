@@ -1,0 +1,48 @@
+{
+  "seed": 42,
+  "val_fraction": 0.2,
+  "classes": [
+    "crazing",
+    "inclusion",
+    "patches",
+    "pitted_surface",
+    "rolled-in_scale",
+    "scratches"
+  ],
+  "counts": {
+    "train": {
+      "crazing": 192,
+      "inclusion": 192,
+      "patches": 192,
+      "pitted_surface": 192,
+      "rolled-in_scale": 192,
+      "scratches": 192
+    },
+    "val": {
+      "crazing": 48,
+      "inclusion": 48,
+      "patches": 48,
+      "pitted_surface": 48,
+      "rolled-in_scale": 48,
+      "scratches": 48
+    },
+    "test": {
+      "crazing": 60,
+      "inclusion": 60,
+      "patches": 60,
+      "pitted_surface": 60,
+      "rolled-in_scale": 60,
+      "scratches": 60
+    }
+  },
+  "totals": {
+    "train": 1152,
+    "val": 288,
+    "test": 360
+  },
+  "exact_duplicates_within_train_pool": [
+    "patches_101.jpg",
+    "patches_105.jpg"
+  ],
+  "train_images_identical_to_test_dropped": 0
+}

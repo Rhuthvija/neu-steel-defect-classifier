@@ -1,0 +1,5 @@
+# Everything needed to train, track, version and test.
+-r requirements.txt
+mlflow>=2.12,<4
+dvc>=3.0,<4
+pytest>=8.0

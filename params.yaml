@@ -1,0 +1,48 @@
+# Single source of truth for every setting.
+# Training, evaluation, DVC and the app all read this file,
+# so changing a value here and running `dvc repro` re-runs only what changed.
+
+seed: 42
+
+data:
+  raw_dir: data/raw/NEU-DET          # unzipped Kaggle dataset
+  splits_dir: data/splits            # train.csv / val.csv / test.csv are written here
+  val_fraction: 0.2                  # carved out of Kaggle "train/" (stratified)
+  # Kaggle "validation/" is used as our held-out TEST set (touched once, at the end)
+  classes: [crazing, inclusion, patches, pitted_surface, rolled-in_scale, scratches]
+
+preprocess:
+  image_size: 224                    # NEU images are 200x200; ResNet expects ~224
+  # ImageNet statistics: the pretrained ResNet18 was trained with these,
+  # so we use the same ones for both models to keep the comparison fair.
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+train:
+  device: auto                       # auto -> cuda, then mps (Apple GPU), then cpu
+  batch_size: 32
+  num_workers: 0                     # 0 is safest on macOS; data is small anyway
+  early_stopping_patience: 5         # epochs without val-loss improvement
+
+  baseline:
+    epochs: 30
+    lr: 0.001
+    weight_decay: 0.0001
+    dropout: 0.3
+
+  resnet18:
+    frozen_epochs: 5                 # stage 1: train only the new head
+    finetune_epochs: 15              # stage 2: unfreeze everything
+    lr_head: 0.001
+    lr_finetune: 0.0001              # 10x smaller so we don't destroy ImageNet features
+    weight_decay: 0.0001
+    dropout: 0.3
+
+mlflow:
+  tracking_uri: sqlite:///mlflow.db
+  experiment: neu-surface-defects
+
+app:
+  model_dir: models/resnet18
+  low_confidence_threshold: 0.60     # below this the app says "inspect manually"
+  max_upload_mb: 10

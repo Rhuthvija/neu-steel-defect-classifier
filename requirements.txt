@@ -1,0 +1,14 @@
+# Runtime dependencies (what the Streamlit app needs).
+# The extra index gives CPU-only PyTorch wheels on Linux (Streamlit Cloud),
+# which are ~10x smaller than the default CUDA ones. Macs get normal wheels.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.2,<3
+torchvision>=0.17,<1
+streamlit>=1.36,<2
+pillow>=10
+numpy>=1.24
+pandas>=2.0
+pyyaml>=6.0
+matplotlib>=3.7
+scipy>=1.10
+scikit-learn>=1.3

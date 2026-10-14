@@ -1,0 +1,99 @@
+# Reproducible pipeline:  dvc repro
+# DVC re-runs a stage only when its code, data or params changed.
+# Visualise it with:      dvc dag
+
+stages:
+  prepare:
+    cmd: python -m src.prepare_data
+    deps:
+      - data/raw/NEU-DET
+      - src/data.py
+      - src/prepare_data.py
+    params:
+      - seed
+      - data
+    outs:
+      - data/splits
+    metrics:
+      - reports/data_report.json:
+          cache: false
+
+  train:
+    foreach: [baseline, resnet18]
+    do:
+      cmd: python -m src.train --model ${item}
+      deps:
+        - data/splits
+        - src/train.py
+        - src/models.py
+        - src/transforms.py
+        - src/dataset.py
+        - src/metrics.py
+      params:
+        - seed
+        - preprocess
+        - train.batch_size
+        - train.early_stopping_patience
+        - train.${item}
+      outs:
+        # cache: false -> the small model files stay in Git so the Streamlit
+        # Cloud app can load them; DVC still records their hashes in dvc.lock.
+        - models/${item}/model.pt:
+            cache: false
+        - models/${item}/preprocess.json:
+            cache: false
+        - models/${item}/val_logits.npz:
+            cache: false
+        - models/${item}/train_summary.json:
+            cache: false
+      plots:
+        - reports/${item}/training_curves.png:
+            cache: false
+
+  calibrate:
+    foreach: [baseline, resnet18]
+    do:
+      cmd: python -m src.calibrate --model ${item}
+      deps:
+        - models/${item}/val_logits.npz
+        - src/calibrate.py
+      outs:
+        - models/${item}/calibration.json:
+            cache: false
+
+  evaluate:
+    foreach: [baseline, resnet18]
+    do:
+      cmd: python -m src.evaluate --model ${item}
+      deps:
+        - data/splits
+        - models/${item}/model.pt
+        - models/${item}/preprocess.json
+        - models/${item}/calibration.json
+        - src/evaluate.py
+        - src/predict.py
+      metrics:
+        - reports/${item}/metrics.json:
+            cache: false
+      plots:
+        - reports/${item}/confusion_matrix.png:
+            cache: false
+        - reports/${item}/misclassified.png:
+            cache: false
+        - reports/${item}/least_confident_correct.png:
+            cache: false
+      outs:
+        - reports/${item}/misclassified.csv:
+            cache: false
+
+  compare:
+    cmd: python -m src.compare
+    deps:
+      - reports/baseline/metrics.json
+      - reports/resnet18/metrics.json
+      - models/baseline/train_summary.json
+      - models/resnet18/train_summary.json
+      - src/compare.py
+    outs:
+      - reports/comparison.md:
+          cache: false

@@ -1,0 +1,9 @@
+{
+  "temperature": 1.0,
+  "note": "Model made no errors on val, so temperature cannot be fitted; T kept at 1.0",
+  "fitted_on": "val",
+  "val_ece_before": 0.0004571080207824707,
+  "val_ece_after": 0.0004571080207824707,
+  "val_nll_before": 0.00046490266686305404,
+  "val_nll_after": 0.00046490266686305404
+}

@@ -1,0 +1,6 @@
+outs:
+- md5: 7ad2f65327a5d1d82ecd4179be1e855b.dir
+  size: 28201919
+  nfiles: 3600
+  hash: md5
+  path: NEU-DET

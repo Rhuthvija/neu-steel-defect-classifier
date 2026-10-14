@@ -1,0 +1,9 @@
+{
+  "temperature": 0.6461124146095424,
+  "note": "Fitted on 2 val errors",
+  "fitted_on": "val",
+  "val_ece_before": 0.010607963841822412,
+  "val_ece_after": 0.00991459252933661,
+  "val_nll_before": 0.02488246187567711,
+  "val_nll_after": 0.020339922979474068
+}

@@ -1,0 +1,340 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.prepare_data
+    deps:
+    - path: data/raw/NEU-DET
+      hash: md5
+      md5: 7ad2f65327a5d1d82ecd4179be1e855b.dir
+      size: 28201919
+      nfiles: 3600
+    - path: src/data.py
+      hash: md5
+      md5: df0583797306831ca7928226159ca6cf
+      size: 4441
+    - path: src/prepare_data.py
+      hash: md5
+      md5: a847f36b6924eabcc490a1319131f37a
+      size: 1068
+    params:
+      params.yaml:
+        data:
+          raw_dir: data/raw/NEU-DET
+          splits_dir: data/splits
+          val_fraction: 0.2
+          classes:
+          - crazing
+          - inclusion
+          - patches
+          - pitted_surface
+          - rolled-in_scale
+          - scratches
+        seed: 42
+    outs:
+    - path: data/splits
+      hash: md5
+      md5: e79f7963ab9e8a6215a8d3b7571a124f.dir
+      size: 162327
+      nfiles: 3
+    - path: reports/data_report.json
+      hash: md5
+      md5: 3e9ffa1a4dc080eafe36e1cce9ebe8da
+      size: 895
+  train@baseline:
+    cmd: python -m src.train --model baseline
+    deps:
+    - path: data/splits
+      hash: md5
+      md5: e79f7963ab9e8a6215a8d3b7571a124f.dir
+      size: 162327
+      nfiles: 3
+    - path: src/dataset.py
+      hash: md5
+      md5: b7ed5bfac3e74154052b162fbf195e60
+      size: 762
+    - path: src/metrics.py
+      hash: md5
+      md5: 5e5041726fc85cc54422c12788a3b8ec
+      size: 2164
+    - path: src/models.py
+      hash: md5
+      md5: 55cfad7c03833fd76863846bfa8a17bb
+      size: 2792
+    - path: src/train.py
+      hash: md5
+      md5: fe1c8754fc251fcd12f8d2b6ade44288
+      size: 10001
+    - path: src/transforms.py
+      hash: md5
+      md5: 81e4871006fce7e7721d30311aec451c
+      size: 2135
+    params:
+      params.yaml:
+        preprocess:
+          image_size: 224
+          mean:
+          - 0.485
+          - 0.456
+          - 0.406
+          std:
+          - 0.229
+          - 0.224
+          - 0.225
+        seed: 42
+        train.baseline:
+          epochs: 30
+          lr: 0.001
+          weight_decay: 0.0001
+          dropout: 0.3
+        train.batch_size: 32
+        train.early_stopping_patience: 5
+    outs:
+    - path: models/baseline/model.pt
+      hash: md5
+      md5: fa6660f8783f9f7cc46653993a0f4486
+      size: 4719197
+    - path: models/baseline/preprocess.json
+      hash: md5
+      md5: 3a0c95d448e16d48eadeb5cced4f6b4d
+      size: 308
+    - path: models/baseline/train_summary.json
+      hash: md5
+      md5: c30b20ffdc3bdd8084403072ec5e6bfd
+      size: 7623
+    - path: models/baseline/val_logits.npz
+      hash: md5
+      md5: 6f008a86f45585d44d8f50c85ec9471e
+      size: 9726
+    - path: reports/baseline/training_curves.png
+      hash: md5
+      md5: 9c047ab21c680b120a839fc8a2522c64
+      size: 56111
+  train@resnet18:
+    cmd: python -m src.train --model resnet18
+    deps:
+    - path: data/splits
+      hash: md5
+      md5: e79f7963ab9e8a6215a8d3b7571a124f.dir
+      size: 162327
+      nfiles: 3
+    - path: src/dataset.py
+      hash: md5
+      md5: b7ed5bfac3e74154052b162fbf195e60
+      size: 762
+    - path: src/metrics.py
+      hash: md5
+      md5: 5e5041726fc85cc54422c12788a3b8ec
+      size: 2164
+    - path: src/models.py
+      hash: md5
+      md5: 55cfad7c03833fd76863846bfa8a17bb
+      size: 2792
+    - path: src/train.py
+      hash: md5
+      md5: fe1c8754fc251fcd12f8d2b6ade44288
+      size: 10001
+    - path: src/transforms.py
+      hash: md5
+      md5: 81e4871006fce7e7721d30311aec451c
+      size: 2135
+    params:
+      params.yaml:
+        preprocess:
+          image_size: 224
+          mean:
+          - 0.485
+          - 0.456
+          - 0.406
+          std:
+          - 0.229
+          - 0.224
+          - 0.225
+        seed: 42
+        train.batch_size: 32
+        train.early_stopping_patience: 5
+        train.resnet18:
+          frozen_epochs: 5
+          finetune_epochs: 15
+          lr_head: 0.001
+          lr_finetune: 0.0001
+          weight_decay: 0.0001
+          dropout: 0.3
+    outs:
+    - path: models/resnet18/model.pt
+      hash: md5
+      md5: 40b453c4d7b3cc4c7e2c6fd0908cbdef
+      size: 44786635
+    - path: models/resnet18/preprocess.json
+      hash: md5
+      md5: f96c583469ef5a5aa04a780f02a081ca
+      size: 308
+    - path: models/resnet18/train_summary.json
+      hash: md5
+      md5: ae32c5410233a1940eca058b2b69e246
+      size: 5059
+    - path: models/resnet18/val_logits.npz
+      hash: md5
+      md5: 635cdb8ccbb3c5f0df299d33935625af
+      size: 9726
+    - path: reports/resnet18/training_curves.png
+      hash: md5
+      md5: 65d07b2aa799fb0e87ec2cfa76fd6082
+      size: 46508
+  calibrate@baseline:
+    cmd: python -m src.calibrate --model baseline
+    deps:
+    - path: models/baseline/val_logits.npz
+      hash: md5
+      md5: 6f008a86f45585d44d8f50c85ec9471e
+      size: 9726
+    - path: src/calibrate.py
+      hash: md5
+      md5: d1e8bcd01b797bad003600f567f90b7a
+      size: 2466
+    outs:
+    - path: models/baseline/calibration.json
+      hash: md5
+      md5: 9d69b014d0d9b6efeb23d72b0f31cd3e
+      size: 261
+  calibrate@resnet18:
+    cmd: python -m src.calibrate --model resnet18
+    deps:
+    - path: models/resnet18/val_logits.npz
+      hash: md5
+      md5: 635cdb8ccbb3c5f0df299d33935625af
+      size: 9726
+    - path: src/calibrate.py
+      hash: md5
+      md5: d1e8bcd01b797bad003600f567f90b7a
+      size: 2466
+    outs:
+    - path: models/resnet18/calibration.json
+      hash: md5
+      md5: 1d8e570fa2291b606e91f3f1a7f5064b
+      size: 307
+  evaluate@baseline:
+    cmd: python -m src.evaluate --model baseline
+    deps:
+    - path: data/splits
+      hash: md5
+      md5: e79f7963ab9e8a6215a8d3b7571a124f.dir
+      size: 162327
+      nfiles: 3
+    - path: models/baseline/calibration.json
+      hash: md5
+      md5: 9d69b014d0d9b6efeb23d72b0f31cd3e
+      size: 261
+    - path: models/baseline/model.pt
+      hash: md5
+      md5: fa6660f8783f9f7cc46653993a0f4486
+      size: 4719197
+    - path: models/baseline/preprocess.json
+      hash: md5
+      md5: 3a0c95d448e16d48eadeb5cced4f6b4d
+      size: 308
+    - path: src/evaluate.py
+      hash: md5
+      md5: 2e377ceacbc0bb8dba4272ca58c55b3d
+      size: 7063
+    - path: src/predict.py
+      hash: md5
+      md5: 8311c9521aed48e696344e3564b57e13
+      size: 3780
+    outs:
+    - path: reports/baseline/confusion_matrix.png
+      hash: md5
+      md5: d1601d135ba9ac65d7295aff1a69af35
+      size: 56035
+    - path: reports/baseline/least_confident_correct.png
+      hash: md5
+      md5: 558be72e730e8e1c49925de151078676
+      size: 622004
+    - path: reports/baseline/metrics.json
+      hash: md5
+      md5: fadb07cc041760d9ea123f7b5383b170
+      size: 2054
+    - path: reports/baseline/misclassified.csv
+      hash: md5
+      md5: b4ede2f9cb8c300420be419ba64d626c
+      size: 195
+    - path: reports/baseline/misclassified.png
+      hash: md5
+      md5: f0e56cab13ef0ff21b4cc75bda65ba06
+      size: 85825
+  evaluate@resnet18:
+    cmd: python -m src.evaluate --model resnet18
+    deps:
+    - path: data/splits
+      hash: md5
+      md5: e79f7963ab9e8a6215a8d3b7571a124f.dir
+      size: 162327
+      nfiles: 3
+    - path: models/resnet18/calibration.json
+      hash: md5
+      md5: 1d8e570fa2291b606e91f3f1a7f5064b
+      size: 307
+    - path: models/resnet18/model.pt
+      hash: md5
+      md5: 40b453c4d7b3cc4c7e2c6fd0908cbdef
+      size: 44786635
+    - path: models/resnet18/preprocess.json
+      hash: md5
+      md5: f96c583469ef5a5aa04a780f02a081ca
+      size: 308
+    - path: src/evaluate.py
+      hash: md5
+      md5: 2e377ceacbc0bb8dba4272ca58c55b3d
+      size: 7063
+    - path: src/predict.py
+      hash: md5
+      md5: 8311c9521aed48e696344e3564b57e13
+      size: 3780
+    outs:
+    - path: reports/resnet18/confusion_matrix.png
+      hash: md5
+      md5: 76d87d600a31eb574ac5287ec3ced4df
+      size: 56589
+    - path: reports/resnet18/least_confident_correct.png
+      hash: md5
+      md5: bfee536221e0fc34c2db6c2c44f91759
+      size: 568671
+    - path: reports/resnet18/metrics.json
+      hash: md5
+      md5: a0305faddd24fd75a4a34e3ad176cf84
+      size: 1768
+    - path: reports/resnet18/misclassified.csv
+      hash: md5
+      md5: 56abfee677ed8133d70cd5bd055f6ffa
+      size: 26
+    - path: reports/resnet18/misclassified.png
+      hash: md5
+      md5: 80b85483f1583e8da36e54871bc90482
+      size: 5778
+  compare:
+    cmd: python -m src.compare
+    deps:
+    - path: models/baseline/train_summary.json
+      hash: md5
+      md5: c30b20ffdc3bdd8084403072ec5e6bfd
+      size: 7623
+    - path: models/resnet18/train_summary.json
+      hash: md5
+      md5: ae32c5410233a1940eca058b2b69e246
+      size: 5059
+    - path: reports/baseline/metrics.json
+      hash: md5
+      md5: fadb07cc041760d9ea123f7b5383b170
+      size: 2054
+    - path: reports/resnet18/metrics.json
+      hash: md5
+      md5: a0305faddd24fd75a4a34e3ad176cf84
+      size: 1768
+    - path: src/compare.py
+      hash: md5
+      md5: 00b9ab17e1a57ba0a9cb5800d77d2194
+      size: 2773
+    outs:
+    - path: reports/comparison.md
+      hash: md5
+      md5: e5e6f00e26ece4023d5fd965bca03d51
+      size: 648

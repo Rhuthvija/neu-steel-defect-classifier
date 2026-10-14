@@ -1,0 +1,3 @@
+path,true,pred,confidence
+validation/images/inclusion/inclusion_283.jpg,inclusion,scratches,0.96199733
+validation/images/pitted_surface/pitted_surface_282.jpg,pitted_surface,inclusion,0.60265946

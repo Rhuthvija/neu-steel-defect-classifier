@@ -9,7 +9,7 @@ An end-to-end computer-vision prototype that classifies steel-surface images int
 | Task | 6-class image classification: crazing, inclusion, patches, pitted_surface, rolled-in_scale, scratches |
 | Models | Small CNN from scratch (baseline) vs. ImageNet-pretrained **ResNet18** (fine-tuned) |
 | Stack | PyTorch · torchvision · MLflow · DVC · Streamlit · pytest |
-| Result | _fill in after training: see [reports/comparison.md](reports/comparison.md)_ |
+| Result | **ResNet18: 100% test accuracy (360/360)**; baseline CNN 99.44% (358/360). See [reports/comparison.md](reports/comparison.md) |
 
 ---
 
@@ -72,17 +72,23 @@ The app shows a **Grad-CAM** heatmap (`src/gradcam.py`, about 40 lines, no extra
 
 ## 3. Results
 
-_Filled in from `reports/comparison.md` after training._
-
 | Metric (test, n = 360) | Baseline CNN | ResNet18 |
 |---|---|---|
-| Accuracy | | |
-| Macro precision | | |
-| Macro recall | | |
-| Macro F1 | | |
-| ECE (calibrated) | | |
-| CPU latency (ms/image) | | |
-| Model size (MB) | | |
+| Accuracy | 99.44% (2 errors) | **100.00%** (0 errors) |
+| Macro precision | 99.45% | 100.00% |
+| Macro recall | 99.44% | 100.00% |
+| Macro F1 | 99.44% | 100.00% |
+| ECE (uncalibrated → calibrated) | 0.0205 → 0.0045 | 0.0016 (T = 1, not fitted) |
+| CPU latency (ms/image) | 11.7 | 7.8 |
+| Model size (MB) | 4.7 | 44.8 |
+| Training time (s) | 567 | 258 |
+
+**Selected: ResNet18**, chosen on validation macro-F1 (100% vs 99.31%), never on test.
+
+Key findings:
+* NEU is an easy dataset, so even the from-scratch CNN reaches 99.4%. Transfer learning mainly bought **faster, more stable training** and robustness on the hardest class.
+* Both baseline errors involve **inclusion**, and ResNet18's least confident correct predictions are mostly inclusions. **Inclusion vs scratches** (both thin vertical streaks) is the weak spot.
+* 0 errors in 360 means the true error rate is very likely below ~0.8% (rule of three), not exactly 0.
 
 Per-model figures are in `reports/<model>/`: `confusion_matrix.png`, `misclassified.png`, `least_confident_correct.png`, `training_curves.png`, `metrics.json`.
 
@@ -92,12 +98,14 @@ Per-model figures are in `reports/<model>/`: `confusion_matrix.png`, `misclassif
 
 ## 4. Setup
 
-Tested with Python 3.11 on macOS (Apple Silicon). Any Python 3.10–3.12 should work.
+Tested with **Python 3.13.3** on macOS (Apple Silicon). Python 3.10 or newer should work.
 
 ```bash
 git clone <this repo> && cd neu-steel-defect-classifier
-python3.11 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements-dev.txt
+# or, for the exact versions used for the reported results:
+# pip install -r requirements-lock.txt
 ```
 
 ### Get the data
@@ -105,7 +113,7 @@ Download the dataset from Kaggle (link above) and unzip it into `data/raw/`:
 ```bash
 unzip "path/to/archive.zip" -d data/raw/      # creates data/raw/NEU-DET/
 ```
-Or with DVC (if you have access to the remote): `dvc pull`.
+> **Note on `dvc pull`:** the DVC remote used for this project is a folder on my laptop (`~/dvc-storage`), so `dvc pull` will not work on another machine. Please download the data from Kaggle as shown above. `data/raw/NEU-DET.dvc` still records the exact hash of the dataset (3,600 files), so you can check that your copy matches with `dvc status`.
 
 ---
 
@@ -114,8 +122,21 @@ Or with DVC (if you have access to the remote): `dvc pull`.
 **One command (DVC pipeline):**
 ```bash
 dvc repro          # prepare -> train (x2) -> calibrate (x2) -> evaluate (x2) -> compare
-dvc dag            # shows the pipeline graph
+dvc dag            # shows the pipeline graph (below)
 dvc metrics show   # prints test metrics for both models
+```
+
+Pipeline graph (`dvc.yaml`):
+```
+            prepare  (data/raw/NEU-DET -> data/splits)
+           /                \
+  train@baseline        train@resnet18
+        |                     |
+calibrate@baseline    calibrate@resnet18
+        |                     |
+evaluate@baseline     evaluate@resnet18
+           \                /
+              compare  (reports/comparison.md)
 ```
 
 **Or step by step:**
@@ -135,6 +156,11 @@ Add `--quick` to `train` for a 1–2 epoch smoke test.
 ```bash
 mlflow ui --backend-store-uri sqlite:///mlflow.db     # open http://127.0.0.1:5000
 ```
+Screenshots of the MLflow runs (the `mlruns/` folder and `mlflow.db` are not in Git):
+
+![MLflow runs](docs/screenshots/mlflow_runs.png)
+![MLflow run metrics](docs/screenshots/mlflow_metrics.png)
+
 Each training run logs its parameters, per-epoch train/val loss and accuracy, best-val metrics, the data version (hash of the split files), the git commit, the device, and the model files. Each evaluation run logs test metrics (overall and per class) and all figures.
 
 **Reproducibility:** all settings live in `params.yaml`. Seeds are fixed for Python, NumPy and PyTorch (including the DataLoader shuffle). Exact package versions are in `requirements-lock.txt`. On a GPU or Apple MPS a few operations are non-deterministic, so re-runs can differ slightly in the last decimals. The data split is always identical.
@@ -182,6 +208,8 @@ dvc push
 ```
 `dvc.yaml` defines the pipeline, and `dvc.lock` records the exact hash of every input and output, so any result can be traced to the data, code and params that produced it.
 
+**Remote:** the configured remote (`localstore`) is a local folder on my laptop. That is enough to show versioning and `dvc push`, but reviewers cannot `dvc pull` from it, so the README points to Kaggle for the data. For a team, the remote would be S3, GCS or Google Drive.
+
 **Trade-off we chose:** the **dataset** is cached by DVC (not in Git). The **trained model files** (`cache: false`) stay in Git because they are small (about 45 MB for ResNet18) and the Streamlit Cloud app must load them directly; Streamlit Cloud cannot run `dvc pull`. DVC still hashes them in `dvc.lock`. With a larger model we would store it in a cloud DVC remote or a model registry, and download it at app start-up.
 
 ---
@@ -191,6 +219,7 @@ dvc push
 ├── app.py                  Streamlit app
 ├── params.yaml             all settings (seed, split, preprocessing, training, app)
 ├── dvc.yaml / dvc.lock     pipeline definition / exact versions
+├── requirements*.txt       runtime deps / dev deps / exact lock (requirements-lock.txt)
 ├── src/
 │   ├── data.py             dataset scan, hashing, stratified split
 │   ├── prepare_data.py     step 1: write split CSVs

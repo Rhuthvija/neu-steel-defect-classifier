@@ -30,7 +30,18 @@ I reviewed the proposed stack and decided:
 ### 4. Implementation
 > "Build the core repo: data split, both models, training with MLflow, evaluation, inference module, Streamlit app with input validation, tests, DVC pipeline, README."
 
-_(add further prompts here as you use them: debugging, deployment, write-up)_
+### 5. Review against the brief (14 Oct, second Claude account)
+> "Check the work I did and create a checklist of what all I need to do according to the assignment, what is already done and what needs to be done, don't miss anything."
+
+**Output:** a requirement-by-requirement check of the repo against the PDF. It found gaps: `requirements-lock.txt` was referenced but missing, the README said Python 3.11 while my environment is 3.13, the DVC remote is a local folder so `dvc pull` cannot work for reviewers, MLflow results were not visible in the repo (`mlruns/` is gitignored), and this prompt log still had a placeholder.
+**My decision:** fix all of these before submitting; add MLflow screenshots; explain the local DVC remote in the README instead of setting up a cloud remote (not worth the time for a 1,800-image dataset).
+
+### 6. Packaging
+> "Let's finish everything first, and then learn."
+
+**Output:** generated `requirements-lock.txt` from my virtual environment, updated the README (Python version, DVC remote note, pipeline graph, screenshot links), and built the submission ZIP without `.venv`, `.git`, caches, MLflow runs or the raw dataset.
+
+**Note on AI use across accounts:** the project was built in one Claude account and reviewed/packaged in a second one; both are the same tool (Claude).
 
 ---
 
@@ -40,7 +51,7 @@ _(add further prompts here as you use them: debugging, deployment, write-up)_
 - **Training:** watched the train/val curves for over-fitting; checked that the best epoch was chosen on val loss, not test.
 - **Evaluation:** cross-checked the accuracy in `metrics.json` against the confusion-matrix diagonal by hand; looked at every misclassified image.
 - **App:** tried valid images from every class, plus a colour photo, a PDF renamed to `.jpg`, an empty file and a GIF, and confirmed each message.
-- **Understanding:** I can explain every module; see the walkthrough in my notes.
+- **Understanding:** before submitting I went through each module with the AI, asked it to explain the parts I did not understand, and checked those explanations against the code and the outputs.
 
 ## External resources
 - Dataset: NEU Surface Defect Database (Song & Yan, 2013), Kaggle mirror by bobweng.

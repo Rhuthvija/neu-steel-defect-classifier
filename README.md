@@ -2,7 +2,7 @@
 
 An end-to-end computer-vision prototype that classifies steel-surface images into six defect types. It covers a reproducible training pipeline, experiment tracking with MLflow, data and pipeline versioning with DVC, and a Streamlit app.
 
-> **Live demo:** [_add Streamlit Cloud URL here_](https://neu-steel-defects.streamlit.app/#steel-surface-defect-classifier)  ·  **Demo video:** _add link here_
+> **Live demo:** [_steel_surface_detect_classifier_](https://neu-steel-defects.streamlit.app/#steel-surface-defect-classifier)  ·  **Demo video:** _add link here_
 
 | | |
 |---|---|
